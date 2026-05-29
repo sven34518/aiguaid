@@ -1,0 +1,2198 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VADYA OFM — Монетизация AI-моделей: Практика и система</title>
+  
+  <!-- Google Fonts Import -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <style>
+    /* ═══════════════════════════════════════
+       STRICT PALETTE & VARIABLES
+       ═══════════════════════════════════════ */
+    :root {
+      --bg:           #FAFAF6;  /* warm off-white, main background */
+      --surface:      #FFFFFF;  /* pure white, cards */
+      --surface2:     #F6F5F0;  /* light warm grey, secondary sections */
+      --border:       #E6E4DC;  /* soft warm beige borders */
+      --text:         #1A1A1A;  /* primary headlines */
+      --body:         #3C3C3C;  /* body text */
+      --muted:        #8A8A82;  /* captions, labels */
+      --dim:          #C0BEB5;  /* dividers, placeholders */
+      --highlight:    #F8F3E6;  /* warm cream — pull quotes, callouts */
+      --cta-bg:       #1A1A1A;  /* CTA button background */
+      --cta-text:     #FFFFFF;  /* CTA button text */
+      --tag-bg:       #1A1A1A;  /* category tag background */
+      --tag-text:     #FFFFFF;  /* category tag text */
+      --card-bad-bg:  #FDF4F4;  /* path A card (soft warm red tint) */
+      --card-bad-br:  #EDD0D0;  /* path A card border */
+      --card-good-bg: #F4FAF5;  /* path B card (soft warm green tint) */
+      --card-good-br: #C0DEC8;  /* path B card border */
+    }
+
+    /* ═══════════════════════════════════════
+       BASE STYLES & RESET
+       ═══════════════════════════════════════ */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background-color: var(--bg);
+      color: var(--body);
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    /* Layout limits */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+
+    .section-spacing {
+      margin-top: 100px;
+      margin-bottom: 100px;
+    }
+
+    /* ═══════════════════════════════════════
+       TYPOGRAPHY
+       ═══════════════════════════════════════ */
+    h1, h2, h3, h4 {
+      font-family: 'Playfair Display', serif;
+      color: var(--text);
+      font-weight: 700;
+      line-height: 1.15;
+    }
+
+    p {
+      font-family: 'Inter', sans-serif;
+      font-size: 17px;
+      font-weight: 400;
+      line-height: 1.85;
+      color: var(--body);
+    }
+
+    .label-mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .subhead-editorial {
+      font-family: 'Inter', sans-serif;
+      font-size: 20px;
+      font-weight: 300;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    /* ═══════════════════════════════════════
+       ANIMATIONS
+       ═══════════════════════════════════════ */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .stagger-load {
+      opacity: 0;
+      animation: fadeUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Intersection Observer class */
+    .reveal-on-scroll {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), 
+                  transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .reveal-on-scroll.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ═══════════════════════════════════════
+       UI ELEMENTS & BUTTONS
+       ═══════════════════════════════════════ */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--cta-bg);
+      color: var(--cta-text);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 12px 24px;
+      text-decoration: none;
+      border: none;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.85;
+    }
+
+    .pill-tag {
+      display: inline-block;
+      background-color: var(--tag-bg);
+      color: var(--tag-text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      padding: 4px 12px;
+      border-radius: 0;
+      text-transform: uppercase;
+    }
+
+    .divider {
+      height: 1px;
+      background-color: var(--border);
+      border: none;
+    }
+
+    /* ═══════════════════════════════════════
+       STICKY NAV
+       ═══════════════════════════════════════ */
+    .sticky-nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background-color: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .sticky-nav.scrolled {
+      box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    }
+
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-center {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      padding: 0 16px;
+    }
+
+    /* ═══════════════════════════════════════
+       HERO (ARTICLE HEADER)
+       ═══════════════════════════════════════ */
+    .hero-section {
+      padding-top: 60px;
+      padding-bottom: 40px;
+    }
+
+    .hero-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .hero-meta-text {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .hero-title {
+      font-size: 82px;
+      font-weight: 700;
+      line-height: 0.95;
+      color: var(--text);
+      margin-bottom: 32px;
+      max-width: 900px;
+    }
+
+    .hero-title span.underline {
+      text-decoration: underline;
+      text-decoration-thickness: 3px;
+    }
+
+    .hero-subhead {
+      max-width: 560px;
+      margin-bottom: 48px;
+    }
+
+    /* Author line container */
+    .author-line {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+      gap: 20px;
+    }
+
+    .author-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* Fixed round avatar layout */
+    .author-avatar {
+      width: 40px;
+      height: 40px;
+      background-color: var(--text);
+      color: var(--surface);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .author-meta-text {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      column-gap: 8px;
+      row-gap: 2px;
+    }
+
+    .author-name {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .author-role {
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      font-size: 13px;
+      color: #888;
+    }
+
+    .author-separator {
+      color: var(--border);
+      font-size: 14px;
+    }
+
+    .author-share {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* Premium Link Share Button & Tooltip */
+    .share-circle {
+      position: relative;
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      transition: background-color 0.2s, border-color 0.2s;
+    }
+
+    .share-circle:hover {
+      background-color: var(--surface2);
+      border-color: var(--dim);
+    }
+
+    .tooltip {
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%) translateY(4px);
+      background-color: var(--text);
+      color: var(--surface);
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      padding: 6px 10px;
+      border-radius: 2px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      z-index: 10;
+    }
+
+    .tooltip.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Stats Pills */
+    .stats-pills-row {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 32px;
+      border: 1px solid var(--border);
+      background-color: var(--surface);
+      padding: 16px 28px;
+      margin-bottom: 40px;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    .stat-val {
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* ═══════════════════════════════════════
+       EDITORIAL INTRO
+       ═══════════════════════════════════════ */
+    .pull-quote {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-style: italic;
+      color: #2A2A2A;
+      border-left: 3px solid var(--text);
+      padding: 24px 32px;
+      background-color: var(--highlight);
+      margin: 40px 0;
+    }
+
+    .editorial-p {
+      max-width: 720px;
+      margin-bottom: 24px;
+    }
+
+    /* ═══════════════════════════════════════
+       TWO PATHS SECTION
+       ═══════════════════════════════════════ */
+    .paths-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      background-color: var(--border);
+      margin-top: 32px;
+    }
+
+    .path-card {
+      padding: 40px;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      border-radius: 2px;
+    }
+
+    .path-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+
+    .path-card.bad {
+      background-color: var(--card-bad-bg);
+      border: 1px solid var(--card-bad-br);
+    }
+
+    .path-card.good {
+      background-color: var(--card-good-bg);
+      border: 1px solid var(--card-good-br);
+    }
+
+    .path-title {
+      font-size: 26px;
+      margin-top: 8px;
+      margin-bottom: 4px;
+    }
+
+    .path-italic-sub {
+      font-family: 'Inter', sans-serif;
+      font-style: italic;
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 24px;
+    }
+
+    .path-list {
+      list-style-type: none;
+      margin-bottom: 32px;
+    }
+
+    .path-list li {
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .path-list .icon-x {
+      color: #C44;
+      font-weight: bold;
+    }
+
+    .path-list .icon-check {
+      color: #1C7A3E;
+      font-weight: bold;
+    }
+
+    .path-summary {
+      font-family: 'Inter', sans-serif;
+      font-style: italic;
+      font-size: 14px;
+      padding: 16px;
+    }
+
+    .path-card.bad .path-summary {
+      background-color: #FFF5F5;
+      border-left: 2px solid #C44;
+    }
+
+    .path-card.good .path-summary {
+      background-color: #F2FAF5;
+      border-left: 2px solid #1C7A3E;
+    }
+
+    /* ═══════════════════════════════════════
+       INTERACTIVE CALCULATOR
+       ═══════════════════════════════════════ */
+    .calculator-block {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      padding: 48px;
+      margin-top: 32px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+      border-radius: 2px;
+    }
+
+    .sliders-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+      margin-top: 24px;
+    }
+
+    .slider-container {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .slider-display-val {
+      font-family: 'Playfair Display', serif;
+      font-size: 42px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    /* Range input styling */
+    .calculator-block input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      background: transparent;
+    }
+
+    .calculator-block input[type=range]:focus {
+      outline: none;
+    }
+
+    .calculator-block input[type=range]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 1px;
+      cursor: pointer;
+      background: var(--border);
+    }
+
+    .calculator-block input[type=range]::-webkit-slider-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #1A1A1A;
+      border: 2px solid #FFF;
+      cursor: pointer;
+      -webkit-appearance: none;
+      margin-top: -8px;
+    }
+
+    .calculator-block input[type=range]::-moz-range-track {
+      width: 100%;
+      height: 1px;
+      cursor: pointer;
+      background: var(--border);
+    }
+
+    .calculator-block input[type=range]::-moz-range-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #1A1A1A;
+      border: 2px solid #FFF;
+      cursor: pointer;
+    }
+
+    .calc-results-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-top: 32px;
+    }
+
+    .calc-result-card {
+      border: 1px solid var(--border);
+      padding: 24px;
+      border-radius: 2px;
+    }
+
+    .calc-result-card.highlighted {
+      background-color: var(--highlight);
+      border-color: #E6D9BC;
+    }
+
+    .calc-result-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .calc-result-val {
+      font-family: 'Playfair Display', serif;
+      font-size: 44px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .calc-footnote {
+      font-family: 'Inter', sans-serif;
+      font-style: italic;
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 16px;
+    }
+
+    /* ═══════════════════════════════════════
+       7-DAY ROADMAP
+       ═══════════════════════════════════════ */
+    .roadmap-list {
+      margin-top: 40px;
+    }
+
+    .day-row {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 32px;
+      padding: 40px 0;
+      border-bottom: 1px solid var(--border);
+      transition: background-color 0.2s ease;
+    }
+
+    .day-row:hover {
+      background-color: rgba(246, 245, 240, 0.4);
+    }
+
+    .day-left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .day-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 56px;
+      font-weight: 700;
+      color: var(--border);
+      line-height: 1;
+      transition: color 0.3s ease;
+    }
+
+    .day-row:hover .day-num {
+      color: var(--text);
+    }
+
+    /* Complexity Badge Colors */
+    .complexity-badge {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 2px;
+      text-align: center;
+      width: fit-content;
+    }
+
+    .complexity-easy {
+      border: 1px solid #C0DEC8;
+      color: #1C7A3E;
+      background-color: #F4FAF5;
+    }
+
+    .complexity-medium {
+      border: 1px solid #F0D9B0;
+      color: #8A5C00;
+      background-color: #FDF8EE;
+    }
+
+    .complexity-critical {
+      border: 1px solid #EDD0D0;
+      color: #C44444;
+      background-color: #FDF4F4;
+    }
+
+    .complexity-system {
+      border: 1px solid #E6E4DC;
+      color: #8A8A82;
+      background-color: #F6F5F0;
+    }
+
+    .day-right-column {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .day-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .day-desc {
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      color: var(--body);
+      line-height: 1.75;
+      margin-bottom: 16px;
+    }
+
+    .day-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .day-tag {
+      border: 1px solid var(--border);
+      background-color: var(--surface2);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      padding: 4px 12px;
+      border-radius: 2px;
+    }
+
+    .rookie-mistake {
+      border-left: 2px solid #EDD0D0;
+      background-color: #FDF4F4;
+      padding: 12px 16px;
+      margin-top: 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: #C44;
+      line-height: 1.6;
+    }
+
+    .rookie-mistake span {
+      font-weight: 700;
+    }
+
+    /* ═══════════════════════════════════════
+       SYSTEM IS BROKEN SECTION (MONOCHROME ICONS)
+       ═══════════════════════════════════════ */
+    .broken-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      background-color: var(--border);
+      margin-top: 32px;
+    }
+
+    .broken-card {
+      background-color: var(--surface);
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      border-radius: 2px;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .broken-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+
+    .broken-icon-wrapper {
+      color: var(--text);
+      margin-bottom: 20px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .broken-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      color: #C44;
+      margin-bottom: 12px;
+    }
+
+    .broken-text {
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      color: var(--body);
+      line-height: 1.7;
+    }
+
+    .broken-solution {
+      border-left: 2px solid #C0DEC8;
+      background-color: #F4FAF5;
+      padding: 12px 16px;
+      margin-top: 20px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: #1C7A3E;
+    }
+
+    .what-is-needed {
+      background-color: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 48px;
+      margin-top: 40px;
+      border-radius: 2px;
+    }
+
+    .needed-h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      margin-bottom: 24px;
+    }
+
+    .needed-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .needed-item {
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+    }
+
+    .needed-item span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ═══════════════════════════════════════
+       VADYA OFM CLUB (COURSE) SECTION
+       ═══════════════════════════════════════ */
+    .club-section {
+      background-color: var(--surface2);
+      padding: 80px 0;
+    }
+
+    .club-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      margin-bottom: 60px;
+    }
+
+    .club-header-left h2 {
+      font-size: 60px;
+      margin-bottom: 8px;
+      white-space: pre-line;
+    }
+
+    .price-block {
+      border: 1px solid var(--border);
+      background-color: var(--surface);
+      padding: 28px;
+      margin-top: 24px;
+      border-radius: 2px;
+    }
+
+    .price-val {
+      font-family: 'Playfair Display', serif;
+      font-size: 60px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .price-desc {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* Modules */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2px;
+      background-color: var(--border);
+      margin-top: 60px;
+    }
+
+    .module-card {
+      background-color: var(--surface);
+      padding: 28px 24px;
+      border-radius: 2px;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .module-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+
+    .module-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .module-name {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .module-desc {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* Mod + block override */
+    .module-card.plus {
+      background-color: var(--highlight);
+      border-color: #E6D9BC;
+    }
+
+    /* Support services block */
+    .support-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background-color: var(--border);
+      margin-top: 2px;
+    }
+
+    .support-card {
+      background-color: var(--surface);
+      padding: 32px;
+      border-radius: 2px;
+    }
+
+    .support-title {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .support-desc {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--body);
+      line-height: 1.7;
+    }
+
+    /* ═══════════════════════════════════════
+       CASE STUDIES SECTION
+       ═══════════════════════════════════════ */
+    .cases-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background-color: var(--border);
+      margin-top: 40px;
+    }
+
+    .case-card {
+      background-color: var(--surface);
+      padding: 40px 32px;
+      border-radius: 2px;
+      position: relative;
+    }
+
+    .case-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: var(--text);
+    }
+
+    .case-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .case-result {
+      font-family: 'Playfair Display', serif;
+      font-size: 42px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+      line-height: 1.1;
+    }
+
+    .case-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .case-row {
+      border-bottom: 1px solid var(--border);
+      padding: 12px 0;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .case-row:last-child {
+      border-bottom: none;
+    }
+
+    .case-row span {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    /* ═══════════════════════════════════════
+       SECURITY & FAQ SECTION
+       ═══════════════════════════════════════ */
+    .faq-section {
+      background-color: var(--surface2);
+      padding: 80px 40px;
+    }
+
+    .faq-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      background-color: var(--border);
+      margin-top: 40px;
+    }
+
+    .faq-card {
+      background-color: var(--surface);
+      padding: 28px;
+      border-radius: 2px;
+    }
+
+    .faq-q {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .faq-a {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--body);
+      line-height: 1.7;
+    }
+
+    /* ═══════════════════════════════════════
+       FINAL CTA & DIAGNOSTIC SESSION
+       ═══════════════════════════════════════ */
+    .cta-container {
+      text-align: center;
+    }
+
+    .diagnostic-block {
+      max-width: 680px;
+      margin: 48px auto 0 auto;
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      padding: 48px;
+      position: relative;
+      text-align: left;
+      border-radius: 2px;
+    }
+
+    .free-badge {
+      position: absolute;
+      top: -12px;
+      right: 32px;
+      background-color: var(--text);
+      color: var(--surface);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      padding: 4px 12px;
+      letter-spacing: 1px;
+    }
+
+    .diagnostic-title {
+      font-size: 30px;
+      margin-bottom: 6px;
+    }
+
+    .diagnostic-sub {
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      color: #888;
+      margin-bottom: 32px;
+    }
+
+    .diagnostic-points {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .diag-point {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--body);
+      line-height: 1.5;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .diag-point::before {
+      content: '→';
+      color: var(--muted);
+      font-weight: bold;
+    }
+
+    .for-whom-block {
+      background-color: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 20px 24px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--body);
+      line-height: 1.6;
+      margin-bottom: 32px;
+      border-radius: 2px;
+    }
+
+    .for-whom-block strong {
+      color: var(--text);
+    }
+
+    .btn-cta-full {
+      width: 100%;
+      background-color: var(--cta-bg);
+      color: var(--cta-text);
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 18px;
+      border: none;
+      border-radius: 2px;
+      cursor: pointer;
+      text-align: center;
+      transition: opacity 0.2s ease;
+      display: block;
+      text-decoration: none;
+    }
+
+    .btn-cta-full:hover {
+      opacity: 0.85;
+    }
+
+    .cta-footnote {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 12px;
+    }
+
+    /* Bonus Block */
+    .bonus-block {
+      max-width: 680px;
+      margin: 32px auto 0 auto;
+      background-color: var(--highlight);
+      border: 1px solid #E6D9BC;
+      padding: 28px 32px;
+      display: flex;
+      gap: 24px;
+      text-align: left;
+      border-radius: 2px;
+    }
+
+    .bonus-icon {
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .bonus-content h4 {
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+
+    .bonus-list {
+      list-style-type: none;
+    }
+
+    .bonus-list li {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--body);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bonus-list .check-icon {
+      color: #1C7A3E;
+    }
+
+    /* ═══════════════════════════════════════
+       FOOTER
+       ═══════════════════════════════════════ */
+    .main-footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+      background-color: var(--bg);
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-links a {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--text);
+    }
+
+    .footer-copy {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      color: #BBBBBB;
+    }
+
+    /* ═══════════════════════════════════════
+       RESPONSIVE DESIGN (BREAKPOINTS)
+       ═══════════════════════════════════════ */
+    @media (max-width: 1024px) {
+      .hero-title {
+        font-size: 64px;
+      }
+      .club-header {
+        gap: 40px;
+      }
+      .club-header-left h2 {
+        font-size: 48px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 20px;
+      }
+
+      .sticky-nav {
+        padding: 16px 20px;
+      }
+
+      .nav-center {
+        display: none;
+      }
+
+      .hero-title {
+        font-size: 44px;
+        line-height: 1.05;
+      }
+
+      .hero-subhead {
+        font-size: 18px;
+        margin-bottom: 32px;
+      }
+
+      .author-line {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 20px 0;
+      }
+
+      .author-meta-text {
+        flex-direction: column;
+        align-items: flex-start;
+        row-gap: 2px;
+      }
+
+      .author-separator {
+        display: none;
+      }
+
+      h2 {
+        font-size: 32px !important;
+      }
+
+      .section-spacing {
+        margin-top: 60px;
+        margin-bottom: 60px;
+      }
+
+      .paths-grid, .calculator-block, .sliders-grid, .calc-results-grid, 
+      .day-row, .broken-grid, .club-header, .modules-grid, .support-grid, 
+      .cases-grid, .faq-grid, .diagnostic-points, .needed-grid {
+        grid-template-columns: 1fr !important;
+        gap: 24px !important;
+      }
+
+      .day-row {
+        gap: 16px !important;
+        padding: 24px 0;
+      }
+
+      .day-num {
+        font-size: 44px;
+      }
+
+      .price-block {
+        margin-top: 12px;
+      }
+
+      .club-header {
+        gap: 24px !important;
+      }
+
+      .club-header-left h2 {
+        font-size: 40px !important;
+      }
+
+      .diagnostic-block, .bonus-block {
+        padding: 24px;
+      }
+
+      .free-badge {
+        right: 20px;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ━━ БЛОК 1: НАВИГАЦИЯ (sticky) -->
+  <nav class="sticky-nav" id="main-nav">
+    <a href="#" class="nav-logo">VADYA OFM</a>
+    <div class="nav-center">Монетизация AI-моделей · Практика и система</div>
+    <a href="#cta-section" class="btn-primary">Записаться на разбор →</a>
+  </nav>
+
+  <main class="container">
+
+    <!-- ━━ БЛОК 2: ГЕРОЙ (article header) -->
+    <header class="hero-section section-spacing">
+      <div class="hero-meta-row staggered-load">
+        <span class="pill-tag">ГАЙД .01</span>
+        <span class="hero-meta-text">· &nbsp; Бесплатный гайд · 12 минут чтения · 2025</span>
+      </div>
+
+      <h1 class="hero-title staggered-load delay-1">
+        7-дневная карта:<br>
+        как выйти на<br>
+        <span class="underline">$2 000</span> в месяц<br>
+        на AI-модели
+      </h1>
+
+      <p class="subhead-editorial hero-subhead staggered-load delay-2">
+        Пошаговый разбор системы — от первого шага до первых денег. Без опыта и навыков дизайна.
+      </p>
+
+      <div class="author-line staggered-load delay-3">
+        <div class="author-left">
+          <div class="author-avatar">V</div>
+          <div class="author-meta-text">
+            <span class="author-name">Автор: Вадя</span>
+            <span class="author-separator">·</span>
+            <span class="author-role">Эксперт по AI-моделям</span>
+          </div>
+        </div>
+        <div class="author-share">
+          <span>Поделиться гайдом:</span>
+          <button class="share-circle" id="share-link-btn" data-url="https://vadyaofm1.vercel.app" aria-label="Скопировать ссылку">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </svg>
+            <span class="tooltip" id="copy-tooltip">Ссылка скопирована</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="stats-pills-row staggered-load delay-4">
+        <div class="stat-item">
+          <span class="stat-label">7 ДНЕЙ ДО ЗАПУСКА</span>
+          <span class="stat-val">Готовая структура</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">ОПЫТ НЕ НУЖЕН</span>
+          <span class="stat-val">Обучение с нуля</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">ПОТЕНЦИАЛ $2K+</span>
+          <span class="stat-val">Доказано практикой</span>
+        </div>
+      </div>
+
+      <hr class="divider">
+    </header>
+
+    <!-- ━━ БЛОК 3: РЕДАКЦИОННОЕ ВСТУПЛЕНИЕ -->
+    <section class="reveal-on-scroll">
+      <div class="pull-quote">
+        «Большинство, кто не вышел на доход — потерпели неудачу не из-за нехватки таланта. Им не хватило системы».
+      </div>
+
+      <p class="editorial-p">
+        Рынок AI-моделей на западных платформах стабильно развивается. Те, кто зашли в эту сферу раньше, выстроили устойчивые источники дохода от $2 000 до $5 000 в месяц. Этот гайд — структурированная карта, аккумулирующая их практический опыт.
+      </p>
+      <p class="editorial-p">
+        Представленные ниже шаги основаны на реальном опыте учеников. День 7 — ключевой этап, на котором многие останавливаются, но именно там закладывается основа долгосрочных результатов.
+      </p>
+    </section>
+
+    <!-- ━━ БЛОК 4: ДВА ПУТИ — 90 ДНЕЙ -->
+    <section id="choice-section" class="section-spacing reveal-on-scroll">
+      <span class="label-mono">// ВАШ ВЫБОР</span>
+      <h2>Где ты окажешься через 90 дней?</h2>
+      <p style="max-width: 600px; margin-top: 12px; margin-bottom: 32px;">
+        Каждое решение формирует определенный результат. В этой нише есть два основных сценария развития событий.
+      </p>
+
+      <div class="paths-grid">
+        <!-- КАРТОЧКА ЛЕВАЯ -->
+        <div class="path-card bad">
+          <span class="label-mono" style="color: #C44;">ПУТЬ A</span>
+          <h3 class="path-title">Ничего не делать</h3>
+          <p class="path-italic-sub">«Начну, когда появится время»</p>
+          <ul class="path-list">
+            <li><span class="icon-x">✗</span> Через 6 месяцев всё так же ищешь стабильный доход</li>
+            <li><span class="icon-x">✗</span> Смотришь, как другие зарабатывают на том, мимо чего ты прошёл</li>
+            <li><span class="icon-x">✗</span> Окно возможности сужается — конкуренция растёт</li>
+            <li><span class="icon-x">✗</span> Та же точка старта, но меньше свободного времени</li>
+          </ul>
+          <div class="path-summary">
+            Через 90 дней: та же точка. Меньше времени.
+          </div>
+        </div>
+
+        <!-- КАРТОЧКА ПРАВАЯ -->
+        <div class="path-card good">
+          <span class="label-mono" style="color: #1C7A3E;">ПУТЬ B</span>
+          <h3 class="path-title">Начать сейчас</h3>
+          <p class="path-italic-sub">«Иду по карте, шаг за шагом»</p>
+          <ul class="path-list">
+            <li><span class="icon-check">✓</span> Недели 1–2: первая модель, понимание механики работы</li>
+            <li><span class="icon-check">✓</span> Недели 3–4: первые подписчики и первые продажи</li>
+            <li><span class="icon-check">✓</span> Месяц 2: предсказуемая система, растущий доход</li>
+            <li><span class="icon-check">✓</span> Месяц 3: стабильные $1 500–$2 000+ и планомерный рост</li>
+          </ul>
+          <div class="path-summary">
+            Через 90 дней: работающая система и первые стабильные деньги.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━ БЛОК 5: ИНТЕРАКТИВНЫЙ КАЛЬКУЛЯТОР ДОХОДА -->
+    <section id="calc-section" class="section-spacing reveal-on-scroll">
+      <span class="label-mono">// ИНТЕРАКТИВНЫЙ РАСЧЁТ</span>
+      <h2>Сколько ты можешь зарабатывать?</h2>
+      <p style="max-width: 600px; margin-top: 12px; margin-bottom: 32px;">
+        Используйте этот калькулятор, чтобы оценить потенциальный финансовый результат на основе ключевых метрик воронки.
+      </p>
+
+      <div class="calculator-block">
+        <span class="label-mono" style="margin-bottom: 32px; display: block;">INCOME SIMULATOR</span>
+        
+        <div class="sliders-grid">
+          <!-- Slider 1 -->
+          <div class="slider-container">
+            <span class="label-mono">ПОДПИСЧИКОВ В МЕСЯЦ</span>
+            <span id="subs-val" class="slider-display-val">500</span>
+            <input type="range" id="subs-range" min="100" max="5000" step="100" value="500">
+          </div>
+          <!-- Slider 2 -->
+          <div class="slider-container">
+            <span class="label-mono">КОНВЕРСИЯ В ПРОДАЖИ</span>
+            <span id="conv-val" class="slider-display-val">3%</span>
+            <input type="range" id="conv-range" min="1" max="15" step="0.5" value="3">
+          </div>
+          <!-- Slider 3 -->
+          <div class="slider-container">
+            <span class="label-mono">СРЕДНИЙ ЧЕК ($)</span>
+            <span id="check-val" class="slider-display-val">$25</span>
+            <input type="range" id="check-range" min="10" max="100" step="5" value="25">
+          </div>
+        </div>
+
+        <hr class="divider" style="margin: 40px 0;">
+
+        <div class="calc-results-grid">
+          <div class="calc-result-card">
+            <div class="calc-result-label">ПРОДАЖ / МЕС</div>
+            <div id="res-sales" class="calc-result-val">15</div>
+          </div>
+          <div class="calc-result-card">
+            <div class="calc-result-label">ДОХОД / МЕС</div>
+            <div id="res-income" class="calc-result-val">$375</div>
+          </div>
+          <div class="calc-result-card highlighted">
+            <div class="calc-result-label">ЧЕРЕЗ 3 МЕС</div>
+            <div id="res-3m" class="calc-result-val" style="font-weight: bold;">$1,125</div>
+          </div>
+          <div class="calc-result-card highlighted">
+            <div class="calc-result-label">ЧЕРЕЗ 6 МЕС</div>
+            <div id="res-6m" class="calc-result-val" style="font-weight: bold;">$2,250</div>
+          </div>
+        </div>
+
+        <div class="calc-footnote">
+          * Консервативный расчет. При выстраивании эффективной воронки конверсия может достигать 8–12%.
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━ БЛОК 6: 7-ДНЕВНАЯ КАРТА -->
+    <section id="roadmap-section" class="section-spacing reveal-on-scroll">
+      <span class="label-mono">// ПОШАГОВАЯ КАРТА</span>
+      <h2>7 дней. Конкретные шаги.</h2>
+      <p style="max-width: 600px; margin-top: 12px; margin-bottom: 16px;">
+        Каждый день решает конкретную задачу. Двигайтесь строго последовательно для достижения результата.
+      </p>
+
+      <div class="roadmap-list">
+        
+        <!-- ДЕНЬ 1 -->
+        <div class="day-row reveal-on-scroll">
+          <div class="day-left-column">
+            <span class="day-num">01</span>
+            <span class="complexity-badge complexity-easy">ЛЁГКИЙ</span>
+          </div>
+          <div class="day-right-column">
+            <h3 class="day-title">Выбор ниши и референсов</h3>
+            <p class="day-desc">
+              Важен поиск востребованного сегмента с платежеспособной аудиторией. Задача — проанализировать актуальные предпочтения на западном рынке и подготовить качественную базу референсов (20–30 примеров).
+            </p>
+            <div class="day-tags">
+              <span class="day-tag">Анализ топ-ниш</span>
+              <span class="day-tag">Референс-папка</span>
+              <span class="day-tag">Стиль</span>
+            </div>
+            <div class="rookie-mistake">
+              <span>⚠ Ошибка новичка:</span> Выбор случайной ниши без предварительной аналитики. В результате готовый продукт может оказаться невостребованным.
+            </div>
+          </div>
+        </div>
+
+        <!-- ДЕНЬ 2 -->
+        <div class="day-row reveal-on-scroll">
+          <div class="day-left-column">
+            <span class="day-num">02</span>
+            <span class="complexity-badge complexity-easy">ЛЁГКИЙ</span>
+          </div>
+          <div class="day-right-column">
+            <h3 class="day-title">Создание AI-модели</h3>
+            <p class="day-desc">
+              Начало работы с генеративными инструментами на основе собранных референсов. Первые десятки генераций помогают освоить инструмент и адаптировать параметры для формирования базового образа модели.
+            </p>
+            <div class="day-tags">
+              <span class="day-tag">Настройка</span>
+              <span class="day-tag">Первые генерации</span>
+              <span class="day-tag">Отбор кадров</span>
+            </div>
+            <div class="rookie-mistake">
+              <span>⚠ Ошибка новичка:</span> Избыточное стремление к безупречности на старте, приводящее к затягиванию процесса генерации.
+            </div>
+          </div>
+        </div>
+
+        <!-- ДЕНЬ 3 -->
+        <div class="day-row reveal-on-scroll">
+          <div class="day-left-column">
+            <span class="day-num">03</span>
+            <span class="complexity-badge complexity-medium">СРЕДНИЙ</span>
+          </div>
+          <div class="day-right-column">
+            <h3 class="day-title">Личность и история модели</h3>
+            <p class="day-desc">
+              Формирование идентичности персонажа: имя, характер, предыстория и стиль коммуникации. Построение прочной связи с аудиторией основывается на детально проработанном образе. Подготовка базового профиля и шаблонов сообщений.
+            </p>
+            <div class="day-tags">
+              <span class="day-tag">Имя и bio</span>
+              <span class="day-tag">Personality</span>
+              <span class="day-tag">Скрипты</span>
+            </div>
+            <div class="rookie-mistake">
+              <span>⚠ Ошибка новичка:</span> Игнорирование проработки характера модели, что снижает показатели вовлеченности аудитории.
+            </div>
+          </div>
+        </div>
+
+        <!-- ДЕНЬ 4 -->
+        <div class="day-row reveal-on-scroll">
+          <div class="day-left-column">
+            <span class="day-num">04</span>
+            <span class="complexity-badge complexity-medium">СРЕДНИЙ</span>
+          </div>
+          <div class="day-right-column">
+            <h3 class="day-title">Выбор платформы и первый профиль</h3>
+            <p class="day-desc">
+              Регистрация, техническая настройка профиля и публикация стартового контента (не менее 15 постов). Наполнение профиля должно быть завершено до начала активного привлечения трафика.
+            </p>
+            <div class="day-tags">
+              <span class="day-tag">Регистрация</span>
+              <span class="day-tag">Настройка</span>
+              <span class="day-tag">15 постов</span>
+            </div>
+            <div class="rookie-mistake">
+              <span>⚠ Ошибка новичка:</span> Привлечение трафика на пустой или незаполненный профиль, что ведет к потере потенциальной аудитории.
+            </div>
+          </div>
+        </div>
+
+        <!-- ДЕНЬ 5 -->
+        <div class="day-row reveal-on-scroll">
+          <div class="day-left-column">
+            <span class="day-num">05</span>
+            <span class="complexity-badge complexity-critical">КЛЮЧЕВОЙ</span>
+          </div>
+          <div class="day-right-column">
+            <h3 class="day-title">Первый трафик: бесплатные источники</h3>
+            <p class="day-desc">
+              Использование целевых площадок, тематических сообществ и платформ для привлечения первых 50–100 качественных подписчиков. Приоритет отдается точному таргетированию, а не общему охвату.
+            </p>
+            <div class="day-tags">
+              <span class="day-tag">Reddit</span>
+              <span class="day-tag">Комьюнити</span>
+              <span class="day-tag">Первые подписчики</span>
+            </div>
+            <div class="rookie-mistake">
+              <span>⚠ Ошибка новичка:</span> Бессистемная публикация ссылок, приводящая к блокировкам на ключевых ресурсах.
+            </div>
+          </div>
+        </div>
+
+        <!-- ДЕНЬ 6 -->
+        <div class="day-row reveal-on-scroll">
+          <div class="day-left-column">
+            <span class="day-num">06</span>
+            <span class="complexity-badge complexity-critical">КЛЮЧЕВОЙ</span>
+          </div>
+          <div class="day-right-column">
+            <h3 class="day-title">Первая продажа</h3>
+            <p class="day-desc">
+              Запуск базовой воронки продаж и отправка персонализированных предложений. Главная цель этапа — подтвердить работоспособность выбранной модели на практике.
+            </p>
+            <div class="day-tags">
+              <span class="day-tag">Первый оффер</span>
+              <span class="day-tag">Первые DM</span>
+              <span class="day-tag">Первая оплата</span>
+            </div>
+            <div class="rookie-mistake">
+              <span>⚠ Ошибка новичка:</span> Ожидание значительного роста базы подписчиков перед запуском первых предложений.
+            </div>
+          </div>
+        </div>
+
+        <!-- ДЕНЬ 7 -->
+        <div class="day-row reveal-on-scroll">
+          <div class="day-left-column">
+            <span class="day-num">07</span>
+            <span class="complexity-badge complexity-system">СИСТЕМНЫЙ</span>
+          </div>
+          <div class="day-right-column">
+            <h3 class="day-title">Анализ и план на 30 дней</h3>
+            <p class="day-desc">
+              Оценка эффективности контента и ключевых каналов трафика. Формирование календарного плана публикаций и выбор приоритетного направления для дальнейшего масштабирования.
+            </p>
+            <div class="day-tags">
+              <span class="day-tag">Метрики</span>
+              <span class="day-tag">Контент-план</span>
+              <span class="day-tag">Приоритет роста</span>
+            </div>
+            <div class="rookie-mistake">
+              <span>⚠ Ошибка новичка:</span> Повторение однотипных действий без анализа промежуточных результатов.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ━━ БЛОК 7: СИСТЕМА СЛОМАНА (MONOCHROME SVGS) -->
+    <section id="system-section" class="section-spacing reveal-on-scroll">
+      <span class="label-mono">// ПОЧЕМУ БОЛЬШИНСТВО ПРОВАЛИВАЕТСЯ</span>
+      <h2>Система сломана. Вот где именно.</h2>
+      <p style="max-width: 600px; margin-top: 12px; margin-bottom: 32px;">
+        Многие начинающие сталкиваются с типичными барьерами из-за неполного понимания бизнес-процессов.
+      </p>
+
+      <div class="broken-grid">
+        <!-- Card 1 -->
+        <div class="broken-card">
+          <div class="broken-icon-wrapper">
+            <!-- Monochrome Canvas & Shapes SVG -->
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="9" r="4"></circle>
+              <rect x="12" y="12" width="8" height="8" rx="1"></rect>
+              <path d="M5 19l3-3 3 3"></path>
+            </svg>
+          </div>
+          <h3 class="broken-title">Тебя учили генерировать — не продавать</h3>
+          <p class="broken-text">
+            Создание привлекательных визуальных образов — лишь часть процесса. Без выстроенной воронки продаж и навыков привлечения платежеспособной аудитории монетизация остается нестабильной.
+          </p>
+          <div class="broken-solution">
+            В курсе: отдельный модуль по продажам, скриптам и психологии покупателя.
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="broken-card">
+          <div class="broken-icon-wrapper">
+            <!-- Monochrome Minimal Open Door SVG -->
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"></path>
+              <path d="M19 12H9M19 12l-4-4M19 12l-4 4"></path>
+            </svg>
+          </div>
+          <h3 class="broken-title" style="color: var(--text);">Тебя бросили после покупки</h3>
+          <p class="broken-text">
+            Отсутствие обратной связи на этапах настройки часто приводит к потере мотивации при столкновении с первыми техническими сложностями.
+          </p>
+          <div class="broken-solution">
+            В курсе: живая поддержка, еженедельные разборы, закрытый чат.
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="broken-card">
+          <div class="broken-icon-wrapper">
+            <!-- Monochrome Globe SVG -->
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+          </div>
+          <h3 class="broken-title" style="color: var(--text);">Тебя учили на русском рынке</h3>
+          <p class="broken-text">
+            Западный рынок имеет существенно более высокие показатели доходности на пользователя. Необходим учет специфики зарубежных платформ и особенностей зарубежной аудитории.
+          </p>
+          <div class="broken-solution">
+            В курсе: блок по трафику из USA и адаптации под западную аудиторию.
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="broken-card">
+          <div class="broken-icon-wrapper">
+            <!-- Monochrome Descending Trend Chart SVG -->
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3v18h18"></path>
+              <path d="M18.5 9l-5 5-3-3-4.5 4.5"></path>
+            </svg>
+          </div>
+          <h3 class="broken-title" style="color: var(--text);">Устаревшие схемы</h3>
+          <p class="broken-text">
+            Динамика платформ требует регулярной актуализации подходов. Использование прошлогодних стратегий существенно снижает конверсию.
+          </p>
+          <div class="broken-solution">
+            В курсе: материалы обновляются. Ты всегда работаешь с актуальными данными.
+          </div>
+        </div>
+      </div>
+
+      <!-- What is actually needed -->
+      <div class="what-is-needed reveal-on-scroll">
+        <h3 class="needed-h3">Что нужно на самом деле</h3>
+        <div class="needed-grid">
+          <div class="needed-item">
+            <span>01 ·</span> Где брать аудиторию, которая платит
+          </div>
+          <div class="needed-item">
+            <span>02 ·</span> Воронка от первого касания до оплаты
+          </div>
+          <div class="needed-item">
+            <span>03 ·</span> Скрипты общения, которые продают
+          </div>
+          <div class="needed-item">
+            <span>04 ·</span> Масштабирование с $500 до $5 000
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ━━ БЛОК 8: КУРС VADYA OFM CLUB -->
+  <section id="club-section" class="club-section reveal-on-scroll">
+    <div class="container">
+      <span class="label-mono">// НОВЫЙ ПОДХОД</span>
+      
+      <div class="club-header">
+        <div class="club-header-left">
+          <h2>VADYA<br>OFM CLUB</h2>
+          <span class="label-mono" style="margin-top: 12px; display: inline-block;">Система. Не просто материалы.</span>
+        </div>
+        <div class="club-header-right">
+          <p style="font-size: 17px; color: var(--body);">
+            Успешный запуск опирается на последовательную систему и своевременную поддержку специалистов в процессе работы, а не только на базовые теоретические материалы.
+          </p>
+          <div class="price-block">
+            <div class="price-val">$549</div>
+            <div class="price-desc">
+              Единоразовый доступ ко всей экосистеме клуба. Окупается при планомерном выстраивании процессов и достижении плановых конверсий.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modules Grid -->
+      <div class="modules-grid">
+        <div class="module-card">
+          <div class="module-num">МОД 01</div>
+          <div class="module-name">Создание модели</div>
+          <div class="module-desc">Выбор ниши, настройка инструментов и генерация качественного контента.</div>
+        </div>
+        <div class="module-card">
+          <div class="module-num">МОД 02</div>
+          <div class="module-name">Генерация видео</div>
+          <div class="module-desc">Построение эффективной системы создания видеоконтента для удержания аудитории.</div>
+        </div>
+        <div class="module-card">
+          <div class="module-num">МОД 03</div>
+          <div class="module-name">Площадки монетизации</div>
+          <div class="module-desc">Обзор и техническая настройка ключевых платформ с высокими показателями доходности.</div>
+        </div>
+        <div class="module-card">
+          <div class="module-num">МОД 04</div>
+          <div class="module-name">NSFW-контент</div>
+          <div class="module-desc">Правила работы в востребованном сегменте и технические ограничения платформ.</div>
+        </div>
+        <div class="module-card">
+          <div class="module-num">МОД 05</div>
+          <div class="module-name">Трафик USA</div>
+          <div class="module-desc">Методы работы с западной аудиторией и ключевые каналы привлечения пользователей.</div>
+        </div>
+        <div class="module-card">
+          <div class="module-num">МОД 06</div>
+          <div class="module-name">Продажи и коммуникация</div>
+          <div class="module-desc">Построение цепочек общения и внедрение продающих скриптов для роста конверсий.</div>
+        </div>
+        <div class="module-card">
+          <div class="module-num">МОД 07</div>
+          <div class="module-name">Масштабирование</div>
+          <div class="module-desc">Автоматизация рутинных процессов, делегирование задач и переход на следующий уровень.</div>
+        </div>
+        <div class="module-card plus">
+          <div class="module-num" style="color: #8A5C00;">МОД +</div>
+          <div class="module-name">Постоянные обновления</div>
+          <div class="module-desc">Оперативная актуализация материалов курса под меняющиеся условия рынка.</div>
+        </div>
+      </div>
+
+      <!-- Support Grid -->
+      <div class="support-grid">
+        <div class="support-card">
+          <div class="support-title">💬 Закрытый чат</div>
+          <div class="support-desc">Сообщество единомышленников для обмена опытом, разбора связок и совместного решения рабочих задач.</div>
+        </div>
+        <div class="support-card">
+          <div class="support-title">📊 Еженедельные разборы</div>
+          <div class="support-desc">Анализ актуальных практических кейсов и разбор типичных ошибок участников программы.</div>
+        </div>
+        <div class="support-card">
+          <div class="support-title">🎯 Личная поддержка</div>
+          <div class="support-desc">Индивидуальные ответы на возникающие технические и методологические вопросы в процессе обучения.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <main class="container">
+
+    <!-- ━━ БЛОК 9: КЕЙСЫ УЧЕНИКОВ -->
+    <section id="cases-section" class="section-spacing reveal-on-scroll">
+      <span class="label-mono">// РЕАЛЬНЫЕ РЕЗУЛЬТАТЫ</span>
+      <h2>Что происходит с теми, кто начинает</h2>
+      <p style="max-width: 600px; margin-top: 12px; margin-bottom: 32px;">
+        Примеры практических результатов участников программы, внедривших пошаговый алгоритм.
+      </p>
+
+      <div class="cases-grid">
+        <!-- CASE 01 -->
+        <div class="case-card">
+          <div class="case-num">КЕЙС 01</div>
+          <div class="case-result">$1-й платёж</div>
+          <div class="case-time">через 11 дней после старта</div>
+          
+          <div class="case-row">
+            <span>Было</span>
+            Отсутствие практического опыта работы с нейросетями и понимания структуры продаж.
+          </div>
+          <div class="case-row">
+            <span>Что сделал</span>
+            Освоил базовые модули генерации, проработал образ модели и запустил стартовые скрипты.
+          </div>
+          <div class="case-row">
+            <span>Результат</span>
+            Получение первого платежа и формирование понимания механики регулярных продаж.
+          </div>
+        </div>
+
+        <!-- CASE 02 -->
+        <div class="case-card">
+          <div class="case-num">КЕЙС 02</div>
+          <div class="case-result">+1 900 подп.</div>
+          <div class="case-time">за 3 дня после внедрения схемы</div>
+          
+          <div class="case-row">
+            <span>Было</span>
+            Готовая модель без стабильного трафика и отлаженной воронки привлечения пользователей.
+          </div>
+          <div class="case-row">
+            <span>Что сделал</span>
+            Применил стратегию продвижения из профильного блока, скорректировав подачу контента.
+          </div>
+          <div class="case-row">
+            <span>Результат</span>
+            Прирост целевых подписчиков и рост входящих обращений на платные предложения.
+          </div>
+        </div>
+
+        <!-- CASE 03 -->
+        <div class="case-card">
+          <div class="case-num">КЕЙС 03</div>
+          <div class="case-result">$5 000/мес</div>
+          <div class="case-time">стабильно каждый месяц</div>
+          
+          <div class="case-row">
+            <span>Было</span>
+            Наличие продаж при высокой доле ручного труда и рисках профессионального выгорания.
+          </div>
+          <div class="case-row">
+            <span>Что сделал</span>
+            Оптимизировал процессы, подключил ассистента и настроил инструменты автоматизации.
+          </div>
+          <div class="case-row">
+            <span>Результат</span>
+            Выход на стабильные финансовые показатели при сокращении личного времени на операционные задачи.
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ━━ БЛОК 10: БЕЗОПАСНОСТЬ И FAQ -->
+  <section id="faq-section" class="faq-section reveal-on-scroll">
+    <div class="container">
+      <span class="label-mono">// ЧАСТЫЕ ВОПРОСЫ</span>
+      <h2>Безопасность и легальность</h2>
+      
+      <div class="faq-grid">
+        <div class="faq-card">
+          <div class="faq-q">Что такое AI-модель и легально ли это?</div>
+          <div class="faq-a">AI-модель — это виртуальный персонаж, сгенерированный нейросетью. Данная деятельность полностью легальна, персонаж не является реальным человеком, а все права на созданный контент принадлежат вам.</div>
+        </div>
+        <div class="faq-card">
+          <div class="faq-q">Что насчёт блокировок в соцсетях?</div>
+          <div class="faq-a">Блокировки аккаунтов случаются, это рабочий процесс. В материалах курса подробно разбирается, как правильно диверсифицировать риски и строить систему так, чтобы замена аккаунта не останавливала общий доход.</div>
+        </div>
+        <div class="faq-card">
+          <div class="faq-q">Платформы разрешают AI-контент?</div>
+          <div class="faq-a">Большинство крупных специализированных платформ монетизации официально разрешают размещение AI-контента при соблюдении внутренних правил сообщества, подробно описанных в третьем модуле.</div>
+        </div>
+        <div class="faq-card">
+          <div class="faq-q">В чём главный риск?</div>
+          <div class="faq-a">Основной риск заключается в прекращении работы до получения первых результатов. Для минимизации этого риска программа предлагает четкую систему шагов и поддержку на всех этапах.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="container">
+
+    <!-- ━━ БЛОК 11: ФИНАЛЬНЫЙ CTA — ДИАГНОСТИЧЕСКАЯ СЕССИЯ -->
+    <section id="cta-section" class="section-spacing cta-container reveal-on-scroll">
+      <h2>Два варианта. Один выбор.</h2>
+      <p style="max-width: 580px; margin: 12px auto 0 auto;">
+        Вариант 1 — вы можете закрыть эту страницу и оставить всё как есть. Вариант 2 — пройти диагностическую сессию и получить пошаговый план развития.
+      </p>
+
+      <div class="diagnostic-block reveal-on-scroll">
+        <div class="free-badge">БЕСПЛАТНО</div>
+        <h3 class="diagnostic-title">Диагностическая сессия</h3>
+        <p class="diagnostic-sub">45 минут. Полный разбор твоей ситуации.</p>
+
+        <div class="diagnostic-points">
+          <div class="diag-point">Разбор опыта: что пробовали и почему не вышло</div>
+          <div class="diag-point">Поиск слабых мест: трафик, контент или продажи</div>
+          <div class="diag-point">Персональная карта: шаги 1, 2, 3 лично под вас</div>
+          <div class="diag-point">Ответы на вопросы по нише и инструментам</div>
+        </div>
+
+        <div class="for-whom-block">
+          <strong>Кому подходит:</strong> вы хотите начать с нуля или пробовали запустить модель самостоятельно, но не получили желаемого результата и готовы к системной работе.<br>
+          <strong>Не подходит:</strong> если вы ищете легких решений без необходимости вникать в процессы.
+        </div>
+
+        <!-- Updated CTA link -->
+        <a href="https://vadyaofm1.vercel.app" target="_blank" class="btn-cta-full">Записаться на бесплатный разбор →</a>
+        <div class="cta-footnote">Количество мест ограничено. Идет запись на следующую неделю.</div>
+      </div>
+
+      <!-- Бонус-блок -->
+      <div class="bonus-block reveal-on-scroll">
+        <div class="bonus-icon">🎁</div>
+        <div class="bonus-content">
+          <h4>Бонус за запись: закрытый видео-урок</h4>
+          <ul class="bonus-list">
+            <li><span class="check-icon">✓</span> Топ-сегменты: какие ниши приносят наибольший доход</li>
+            <li><span class="check-icon">✓</span> Язык клиента: как выстраивать диалог для роста конверсии</li>
+            <li><span class="check-icon">✓</span> Западный рынок: ключевые отличия платежеспособного спроса</li>
+            <li><span class="check-icon">✓</span> Позиционирование: примеры, которые эффективно работают сейчас</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ━━ БЛОК 12: FOOTER -->
+  <footer class="main-footer">
+    <div class="container footer-inner">
+      <a href="#" class="nav-logo">VADYA OFM</a>
+      <div class="footer-links">
+        <a href="#roadmap-section">7-дневная карта</a>
+        <a href="#calc-section">Калькулятор</a>
+        <a href="#cta-section">Разбор</a>
+      </div>
+      <div class="footer-copy">
+        © 2025 Vadya OFM · Все права защищены
+      </div>
+    </div>
+  </footer>
+
+  <!-- ═══════════════════════════════════════
+       JAVASCRIPT
+       ═══════════════════════════════════════ -->
+  <script>
+    // 1. КАЛЬКУЛЯТОР ДОХОДА
+    const subsRange = document.getElementById('subs-range');
+    const convRange = document.getElementById('conv-range');
+    const checkRange = document.getElementById('check-range');
+
+    const subsVal = document.getElementById('subs-val');
+    const convVal = document.getElementById('conv-val');
+    const checkVal = document.getElementById('check-val');
+
+    const resSales = document.getElementById('res-sales');
+    const resIncome = document.getElementById('res-income');
+    const res3m = document.getElementById('res-3m');
+    const res6m = document.getElementById('res-6m');
+
+    const resultElements = [resSales, resIncome, res3m, res6m];
+
+    function calculate() {
+      const subs = parseInt(subsRange.value);
+      const conv = parseFloat(convRange.value);
+      const check = parseInt(checkRange.value);
+
+      // Update text values
+      subsVal.innerText = subs.toLocaleString('ru-RU');
+      convVal.innerText = conv + '%';
+      checkVal.innerText = '$' + check;
+
+      // Calculations
+      const sales = Math.round(subs * (conv / 100));
+      const monthlyIncome = sales * check;
+      const income3m = monthlyIncome * 3;
+      const income6m = monthlyIncome * 6;
+
+      // Output values with formatting
+      resSales.innerText = sales.toLocaleString('ru-RU');
+      resIncome.innerText = '$' + monthlyIncome.toLocaleString('en-US');
+      res3m.innerText = '$' + income3m.toLocaleString('en-US');
+      res6m.innerText = '$' + income6m.toLocaleString('en-US');
+
+      // Trigger subtle scale animation on update
+      resultElements.forEach(el => {
+        el.style.transform = 'scale(1.03)';
+        el.style.transition = 'transform 0.12s ease';
+        setTimeout(() => {
+          el.style.transform = 'scale(1)';
+        }, 120);
+      });
+    }
+
+    [subsRange, convRange, checkRange].forEach(input => {
+      input.addEventListener('input', calculate);
+    });
+
+    // Initial calculation
+    calculate();
+
+
+    // 2. SCROLL ANIMATIONS (Intersection Observer)
+    const revealElements = document.querySelectorAll('.reveal-on-scroll');
+    
+    const observerOptions = {
+      root: null,
+      threshold: 0.08,
+      rootMargin: '0px 0px -40px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target); // Animates once
+        }
+      });
+    }, observerOptions);
+
+    revealElements.forEach(el => {
+      observer.observe(el);
+    });
+
+
+    // 3. STICKY NAV SHADOW ON SCROLL
+    const nav = document.getElementById('main-nav');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 20) {
+        nav.classList.add('scrolled');
+      } else {
+        nav.classList.remove('scrolled');
+      }
+    });
+
+    // 4. PREMUM COPY TO CLIPBOARD INTERACTION
+    const shareBtn = document.getElementById('share-link-btn');
+    const tooltip = document.getElementById('copy-tooltip');
+
+    if (shareBtn && tooltip) {
+      shareBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const copyUrl = shareBtn.getAttribute('data-url');
+        
+        navigator.clipboard.writeText(copyUrl).then(() => {
+          tooltip.classList.add('show');
+          setTimeout(() => {
+            tooltip.classList.remove('show');
+          }, 2000);
+        }).catch(err => {
+          console.warn('Не удалось скопировать автоматически. Ссылка на сайт: ', copyUrl);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
